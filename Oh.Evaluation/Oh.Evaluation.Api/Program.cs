@@ -16,7 +16,7 @@ var builder = WebApplication.CreateBuilder(args);
 
 // Конфигурация
 builder.Configuration
-    .AddJsonFile("appsettings.json", optional: true, reloadOnChange: true)
+    .AddJsonFile("Properties/appsettings.json", optional: true, reloadOnChange: true)
     .AddEnvironmentVariables();
 
 // Настройки
@@ -24,10 +24,13 @@ builder.Services.Configure<AuthSettings>(
     builder.Configuration.GetSection("AuthSettings"));
 builder.Services.Configure<DatabaseSettings>(
     builder.Configuration.GetSection("DatabaseSettings"));
+builder.Services.Configure<ApiSettings>(
+    builder.Configuration.GetSection("ApiSettings"));
 
 // Привязываем настройки к переменным
 var authSettings = builder.Configuration.GetSection("AuthSettings").Get<AuthSettings>() ?? new AuthSettings();
 var dbSettings = builder.Configuration.GetSection("DatabaseSettings").Get<DatabaseSettings>() ?? new DatabaseSettings();
+var apiSettings = builder.Configuration.GetSection("ApiSettings").Get<ApiSettings>() ?? new ApiSettings();
 
 // Настройка DbContext
 builder.Services.AddDbContext<EvaluationDbContext>(options =>
@@ -50,7 +53,7 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
             ValidateAudience = true,
             ValidAudience = authSettings.AuthAudience,
 
-            ValidateLifetime = true,
+            ValidateLifetime = false,
             ValidateIssuerSigningKey = true,
 
             IssuerSigningKeyResolver = (token, securityToken, kid, parameters) =>
@@ -77,10 +80,10 @@ builder.Services.AddScoped<ISubmissionService, StudentSubmissionService>();
 builder.Services.AddScoped<ITextEvaluationService, TextEvaluationService>();
 builder.Services.AddScoped<IUserContextService, UserContextService>();
 
-builder.Services.AddRefitClient<IAiClient>().ConfigureHttpClient(c => c.BaseAddress = new Uri(""));
-builder.Services.AddRefitClient<ICourseClient>().ConfigureHttpClient(c => c.BaseAddress = new Uri("/api/course"));
-builder.Services.AddRefitClient<ILearningClient>().ConfigureHttpClient(c => c.BaseAddress = new Uri(""));
-builder.Services.AddRefitClient<IPagesClient>().ConfigureHttpClient(c => c.BaseAddress = new Uri("/api/pages"));
+builder.Services.AddRefitClient<IAiClient>().ConfigureHttpClient(c => c.BaseAddress = new Uri(apiSettings.AiClientBase));
+builder.Services.AddRefitClient<ICourseClient>().ConfigureHttpClient(c => c.BaseAddress = new Uri(apiSettings.CourseClientBase));
+builder.Services.AddRefitClient<ILearningClient>().ConfigureHttpClient(c => c.BaseAddress = new Uri(apiSettings.LearningClientBase));
+builder.Services.AddRefitClient<IPagesClient>().ConfigureHttpClient(c => c.BaseAddress = new Uri(apiSettings.PageClientBase));
 
 
 // Swagger

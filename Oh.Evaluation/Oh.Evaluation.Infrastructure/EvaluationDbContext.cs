@@ -38,7 +38,7 @@ public class EvaluationDbContext : DbContext
             entity.Property(e => e.RuntimeImage).HasColumnName("runtime_image").HasMaxLength(128);
             entity.Property(e => e.TimeLimitMs).HasColumnName("time_limit_ms");
             entity.Property(e => e.MemoryLimitMb).HasColumnName("memory_limit_mb");
-            entity.Property(e => e.Code).HasColumnName("code").IsRequired();
+            entity.Property(e => e.Code).HasColumnName("code");
             entity.Property(e => e.Status)
                   .HasColumnName("status")
                   .HasConversion<string>();

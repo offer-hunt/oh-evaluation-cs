@@ -30,7 +30,7 @@ namespace Oh.Evaluation.Infrastructure.Migrations
                     runtime_image = table.Column<string>(type: "character varying(128)", maxLength: 128, nullable: true),
                     time_limit_ms = table.Column<int>(type: "integer", nullable: true),
                     memory_limit_mb = table.Column<int>(type: "integer", nullable: true),
-                    code = table.Column<string>(type: "text", nullable: false),
+                    code = table.Column<string>(type: "text", nullable: true),
                     status = table.Column<string>(type: "text", nullable: false),
                     verdict = table.Column<string>(type: "text", nullable: false),
                     tests_passed = table.Column<int>(type: "integer", nullable: false, defaultValue: 0),

@@ -8,12 +8,12 @@ using Oh.Evaluation.Api.ApiClients;
 
 namespace Oh.Evaluation.Api.Services;
 
-public class TextEvaluationService(IAiClient aiClient) : ITextEvaluationService
+    public class TextEvaluationService(IAiClient aiClient) : ITextEvaluationService
 {
     public async Task<SubmissionResult> Evaluate(StudentSubmissionRequest studentSubmissionRequest, CourseQuestion question)
     {
         var studentAnswer = studentSubmissionRequest.SubmissionData.TextSubmission;
-        if (string.IsNullOrEmpty(studentAnswer))
+        if (string.IsNullOrWhiteSpace(studentAnswer))
         {
             throw new ValidationException();
         }
@@ -30,7 +30,7 @@ public class TextEvaluationService(IAiClient aiClient) : ITextEvaluationService
 
         if (question.UseAiCheck)
         {
-            var slop = await aiClient.GetTextReview(new TextReviewRequest
+            var aiResponse = await aiClient.GetTextReview(new TextReviewRequest
             {
                 Answer = studentAnswer,
                 Question = question.Text,
@@ -40,11 +40,11 @@ public class TextEvaluationService(IAiClient aiClient) : ITextEvaluationService
             return new SubmissionResult
             {
                 Status = status,
-                Score = slop.Score,
+                Score = aiResponse.Score,
                 Feedback = new SubmissionFeedback
                 { 
-                    Summary = slop.Summary,
-                    Suggestions = slop.Suggestions
+                    Summary = aiResponse.Summary,
+                    Suggestions = aiResponse.Suggestions
                 }
             };
         }

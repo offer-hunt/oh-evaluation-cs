@@ -9,67 +9,67 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
+
     steps:
       # 1. Checkout repository
       - name: Checkout repository
         uses: actions/checkout@v4
-
+      
       # 2. Setup .NET SDK
       - name: Setup .NET
         uses: actions/setup-dotnet@v3
         with:
-          dotnet-version: '9.0.x' # или нужная версия SDK
-
+          dotnet-version: '9.0.x'
+      
       # 3. Restore dependencies
       - name: Restore dependencies
-        run: dotnet restore
-
-      # 4. Run code analysis / linter (через .NET format и SonarAnalyzer)
+        run: dotnet restore Oh.Evaluation.sln
+      
+      # 4. Run code analysis / linter
       - name: Run code analysis
         run: |
           dotnet format --check
-          # Если есть SonarQube или аналог, можно добавить запуск анализатора
-
+          # Можно добавить SonarAnalyzer или другой анализатор
+      
       # 5. Build project
       - name: Build
-        run: dotnet build --no-restore --configuration Release
-
+        run: dotnet build Oh.Evaluation.sln --no-restore --configuration Release
+      
       # 6. Run unit tests
       - name: Run unit tests
-        run: dotnet test --no-build --configuration Release --verbosity normal
-
-      # 7. Prepare integration test dependencies
-      # (если нужны дополнительные пакеты для интеграционных тестов)
+        run: dotnet test Oh.Evaluation.Tests/Oh.Evaluation.Tests.csproj --no-build --configuration Release --verbosity normal
+      
+      # 7. Prepare integration test dependencies (если нужно)
       - name: Prepare integration test deps
-        run: dotnet restore ./test/IntegrationTests
-
+        run: dotnet restore ./Oh.Evaluation.Tests/IntegrationTests
+      
       # 8. Run integration tests
       - name: Run integration tests
         env:
           MIGRATIONS_DIR: ${{ github.workspace }}/db/migrations
-        run: dotnet test ./test/IntegrationTests --no-build --configuration Release --filter "Category=Integration"
-
+        run: dotnet test ./Oh.Evaluation.Tests/IntegrationTests --no-build --configuration Release --filter "Category=Integration"
+      
       # 9. Get short Git SHA
       - name: Get short Git SHA
         id: git-sha
         run: echo "sha=$(git rev-parse --short HEAD)" >> $GITHUB_OUTPUT
-
-      # 10. Docker login
+      
+      # 10. Docker login (только для main)
       - name: Login to Docker Hub
         if: github.event_name == 'push' && github.ref == 'refs/heads/main'
         uses: docker/login-action@v3
         with:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
-
-      # 11. Build and push Docker image
+      
+      # 11. Build and push Docker image (только для main)
       - name: Build and push Docker image
         if: github.event_name == 'push' && github.ref == 'refs/heads/main'
         uses: docker/build-push-action@v5
         with:
           context: .
-          file: ./Dockerfile
+          file: ./Oh.Evaluation/Dockerfile
           push: true
           tags: |
-            myorg/my-dotnet-app:${{ steps.git-sha.outputs.sha }}
-            myorg/my-dotnet-app:latest
+            myorg/oh-evaluation:${{ steps.git-sha.outputs.sha }}
+            myorg/oh-evaluation:latest

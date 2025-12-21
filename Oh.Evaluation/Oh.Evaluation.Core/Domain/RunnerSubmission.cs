@@ -21,7 +21,7 @@ public class RunnerSubmission
         
     public int? TimeLimitMs { get; set; }
     public int? MemoryLimitMb { get; set; }
-    public string Code { get; set; }
+    public string? Code { get; set; }
     public DockerPipelineStatus Status { get; set; }
     public EvaluationStatus Verdict { get; set; }
     public int TestsPassed { get; set; }

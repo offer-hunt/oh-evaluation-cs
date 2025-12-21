@@ -14,17 +14,18 @@ public class QuizEvaluationService(ICourseClient courseClient) : IQuizEvaluation
         
         var status = EvaluationStatus.Accepted;
 
-        if (quizAnswers.Count != studentAnswers.Count)
+        foreach (var quizAnswer in quizAnswers)
         {
-            return new SubmissionResult
+            if (quizAnswer.Correct && !studentAnswers.Contains(quizAnswer.Id))
             {
-                Status = status
-            };
+                status = EvaluationStatus.Rejected;
+            }
         }
-
-        for (var i = 0; i < quizAnswers.Count; i++)
+        
+        foreach (var studentAnswer in studentAnswers)
         {
-            if (quizAnswers[i].Correct && (studentAnswers[i] != quizAnswers[i].Id))
+            if (quizAnswers.Select(q => q.Id).Contains(studentAnswer) && 
+                quizAnswers.Any(q => q.Id == studentAnswer && !q.Correct))
             {
                 status = EvaluationStatus.Rejected;
             }
