@@ -1,0 +1,21 @@
+version: '3.8'
+
+services:
+  postgres:
+    image: postgres:16
+    container_name: oh-evaluation-postgres
+    restart: always
+    environment:
+      POSTGRES_USER: evaluation_user
+      POSTGRES_PASSWORD: evaluation_password
+      POSTGRES_DB: evaluation_db
+    ports:
+      - "5433:5432"
+    volumes:
+      - ./postgres_data:/var/lib/postgresql/data
+      - ./docker/initdb:/docker-entrypoint-initdb.d:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U evaluation_user -d evaluation_db"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
