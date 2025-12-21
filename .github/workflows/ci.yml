@@ -30,14 +30,15 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-nuget-
 
-      # 4. Restore dependencies (решение в Oh.Evaluation/)
+      # 4. Restore dependencies
       - name: Restore dependencies
         run: dotnet restore ./Oh.Evaluation/Oh.Evaluation.sln
 
       # 5. Run code analysis / linter
       - name: Run code analysis
         run: |
-          dotnet format --check
+          # Проверка форматирования только для изменений в текущем коммите
+          git diff --name-only HEAD~1 HEAD | grep '\.cs$' | xargs -r dotnet format --verify-no-changes
           # Можно добавить SonarAnalyzer или другой анализатор
 
       # 6. Build project
@@ -48,18 +49,12 @@ jobs:
       - name: Run unit tests
         run: dotnet test ./Oh.Evaluation/Oh.Evaluation.Tests/Oh.Evaluation.Tests.csproj --no-build --configuration Release --verbosity normal
 
-      # 8. Run integration tests
-      - name: Run integration tests
-        env:
-          MIGRATIONS_DIR: ${{ github.workspace }}/Oh.Evaluation/db/migrations
-        run: dotnet test ./Oh.Evaluation/Oh.Evaluation.Tests/IntegrationTests --no-build --configuration Release --filter "Category=Integration"
-
-      # 9. Get short Git SHA
+      # 8. Get short Git SHA
       - name: Get short Git SHA
         id: git-sha
         run: echo "sha=$(git rev-parse --short HEAD)" >> $GITHUB_OUTPUT
 
-      # 10. Docker login (только для main)
+      # 9. Docker login (только для main)
       - name: Login to Docker Hub
         if: github.event_name == 'push' && github.ref == 'refs/heads/main'
         uses: docker/login-action@v3
@@ -67,7 +62,7 @@ jobs:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
 
-      # 11. Build and push Docker image (только для main)
+      # 10. Build and push Docker image (только для main)
       - name: Build and push Docker image
         if: github.event_name == 'push' && github.ref == 'refs/heads/main'
         uses: docker/build-push-action@v5

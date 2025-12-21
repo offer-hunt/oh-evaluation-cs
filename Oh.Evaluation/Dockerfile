@@ -15,16 +15,16 @@ COPY . .
 
 RUN dotnet publish Oh.Evaluation.Api/Oh.Evaluation.Api.csproj \
     -c Release \
-    -o /app/publish \
-    --no-restore
-
+    -o /app/publish
+    
 # ===== RUNTIME STAGE =====
 FROM mcr.microsoft.com/dotnet/aspnet:9.0 AS runtime
 WORKDIR /app
 
 COPY --from=build /app/publish .
 
-EXPOSE 8080
-ENV ASPNETCORE_URLS=http://+:8080
+EXPOSE 8001
+EXPOSE 8000
+ENV ASPNETCORE_URLS=http://+:8001;http://+:8000
 
 ENTRYPOINT ["dotnet", "Oh.Evaluation.Api.dll"]
