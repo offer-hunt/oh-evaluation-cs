@@ -41,32 +41,28 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     .AddJwtBearer(options =>
     {
         options.RequireHttpsMetadata = false; // для локальной разработки
+
         options.TokenValidationParameters = new TokenValidationParameters
         {
             ValidateIssuer = true,
             ValidIssuer = authSettings.AuthIssuer,
+
             ValidateAudience = true,
             ValidAudience = authSettings.AuthAudience,
+
             ValidateLifetime = true,
             ValidateIssuerSigningKey = true,
+
             IssuerSigningKeyResolver = (token, securityToken, kid, parameters) =>
             {
                 using var httpClient = new HttpClient();
-                var jwks = httpClient.GetStringAsync(authSettings.AuthJwksUrl).GetAwaiter().GetResult();
-                var keys = new JsonWebKeySet(jwks);
-                return keys.GetSigningKeys();
-            }
-        };
-        options.Events = new JwtBearerEvents
-        {
-            OnAuthenticationFailed = context =>
-            {
-                Console.WriteLine($"Auth failed: {context.Exception.Message}");
-                return Task.CompletedTask;
+                var jwksJson = httpClient.GetStringAsync(authSettings.AuthJwksUrl).GetAwaiter().GetResult();
+                var jwks = new JsonWebKeySet(jwksJson);
+
+                return jwks.Keys.Where(k => k.Kid == kid);
             }
         };
     });
-
 
 
 builder.Services.AddAuthorization();
@@ -98,6 +94,21 @@ builder.Services.AddSwaggerGen(c =>
         In = ParameterLocation.Header,
         Type = SecuritySchemeType.Http,
         Scheme = "bearer"
+    });
+    
+    c.AddSecurityRequirement(new OpenApiSecurityRequirement
+    {
+        {
+            new OpenApiSecurityScheme
+            {
+                Reference = new OpenApiReference 
+                { 
+                    Type = ReferenceType.SecurityScheme, 
+                    Id = "Bearer" 
+                }
+            },
+            Array.Empty<string>()
+        }
     });
 });
 
