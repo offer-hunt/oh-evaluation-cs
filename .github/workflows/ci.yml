@@ -14,46 +14,51 @@ jobs:
       # 1. Checkout repository
       - name: Checkout repository
         uses: actions/checkout@v4
-      
+
       # 2. Setup .NET SDK
       - name: Setup .NET
         uses: actions/setup-dotnet@v3
         with:
           dotnet-version: '9.0.x'
-      
-      # 3. Restore dependencies
+
+      # 3. Cache NuGet packages
+      - name: Cache NuGet packages
+        uses: actions/cache@v3
+        with:
+          path: ~/.nuget/packages
+          key: ${{ runner.os }}-nuget-${{ hashFiles('**/*.csproj') }}
+          restore-keys: |
+            ${{ runner.os }}-nuget-
+
+      # 4. Restore dependencies (решение в Oh.Evaluation/)
       - name: Restore dependencies
-        run: dotnet restore Oh.Evaluation.sln
-      
-      # 4. Run code analysis / linter
+        run: dotnet restore ./Oh.Evaluation/Oh.Evaluation.sln
+
+      # 5. Run code analysis / linter
       - name: Run code analysis
         run: |
           dotnet format --check
           # Можно добавить SonarAnalyzer или другой анализатор
-      
-      # 5. Build project
+
+      # 6. Build project
       - name: Build
-        run: dotnet build Oh.Evaluation.sln --no-restore --configuration Release
-      
-      # 6. Run unit tests
+        run: dotnet build ./Oh.Evaluation/Oh.Evaluation.sln --no-restore --configuration Release
+
+      # 7. Run unit tests
       - name: Run unit tests
-        run: dotnet test Oh.Evaluation.Tests/Oh.Evaluation.Tests.csproj --no-build --configuration Release --verbosity normal
-      
-      # 7. Prepare integration test dependencies (если нужно)
-      - name: Prepare integration test deps
-        run: dotnet restore ./Oh.Evaluation.Tests/IntegrationTests
-      
+        run: dotnet test ./Oh.Evaluation/Oh.Evaluation.Tests/Oh.Evaluation.Tests.csproj --no-build --configuration Release --verbosity normal
+
       # 8. Run integration tests
       - name: Run integration tests
         env:
-          MIGRATIONS_DIR: ${{ github.workspace }}/db/migrations
-        run: dotnet test ./Oh.Evaluation.Tests/IntegrationTests --no-build --configuration Release --filter "Category=Integration"
-      
+          MIGRATIONS_DIR: ${{ github.workspace }}/Oh.Evaluation/db/migrations
+        run: dotnet test ./Oh.Evaluation/Oh.Evaluation.Tests/IntegrationTests --no-build --configuration Release --filter "Category=Integration"
+
       # 9. Get short Git SHA
       - name: Get short Git SHA
         id: git-sha
         run: echo "sha=$(git rev-parse --short HEAD)" >> $GITHUB_OUTPUT
-      
+
       # 10. Docker login (только для main)
       - name: Login to Docker Hub
         if: github.event_name == 'push' && github.ref == 'refs/heads/main'
@@ -61,13 +66,13 @@ jobs:
         with:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
-      
+
       # 11. Build and push Docker image (только для main)
       - name: Build and push Docker image
         if: github.event_name == 'push' && github.ref == 'refs/heads/main'
         uses: docker/build-push-action@v5
         with:
-          context: .
+          context: ./Oh.Evaluation
           file: ./Oh.Evaluation/Dockerfile
           push: true
           tags: |
