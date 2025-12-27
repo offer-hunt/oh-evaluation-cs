@@ -26,6 +26,8 @@ builder.Services.Configure<DatabaseSettings>(
     builder.Configuration.GetSection("DatabaseSettings"));
 builder.Services.Configure<ApiSettings>(
     builder.Configuration.GetSection("ApiSettings"));
+builder.Services.Configure<OpenRouterSettings>(
+    builder.Configuration.GetSection("OpenRouter"));
 
 // Привязываем настройки к переменным
 var authSettings = builder.Configuration.GetSection("AuthSettings").Get<AuthSettings>() ?? new AuthSettings();
@@ -71,6 +73,7 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
 builder.Services.AddAuthorization();
 
 builder.Services.AddHttpClient();
+builder.Services.AddHttpClient<AiClientStub>();
 
 builder.Services.AddHttpContextAccessor();
 
@@ -79,8 +82,9 @@ builder.Services.AddScoped<IQuizEvaluationService, QuizEvaluationService>();
 builder.Services.AddScoped<ISubmissionService, StudentSubmissionService>();
 builder.Services.AddScoped<ITextEvaluationService, TextEvaluationService>();
 builder.Services.AddScoped<IUserContextService, UserContextService>();
+builder.Services.AddScoped<IAiClient, AiClientStub>();
 
-builder.Services.AddRefitClient<IAiClient>().ConfigureHttpClient(c => c.BaseAddress = new Uri(apiSettings.AiClientBase));
+//builder.Services.AddRefitClient<IAiClient>().ConfigureHttpClient(c => c.BaseAddress = new Uri(apiSettings.AiClientBase));
 builder.Services.AddRefitClient<ICourseClient>().ConfigureHttpClient(c => c.BaseAddress = new Uri(apiSettings.CourseClientBase));
 builder.Services.AddRefitClient<ILearningClient>().ConfigureHttpClient(c => c.BaseAddress = new Uri(apiSettings.LearningClientBase));
 builder.Services.AddRefitClient<IPagesClient>().ConfigureHttpClient(c => c.BaseAddress = new Uri(apiSettings.PageClientBase));

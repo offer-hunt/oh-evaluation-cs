@@ -55,7 +55,7 @@ namespace Oh.Evaluation.Tests
             
             // Verify AI client was NOT called since answers match exactly
             _aiClientMock.Verify(
-                x => x.GetTextReview(It.IsAny<TextReviewRequest>()), 
+                x => x.GetTextReview(It.IsAny<TextReviewRequest>(), It.IsAny<CancellationToken>()), 
                 Times.Never);
         }
 
@@ -95,7 +95,7 @@ namespace Oh.Evaluation.Tests
             
             // Verify AI client was NOT called
             _aiClientMock.Verify(
-                x => x.GetTextReview(It.IsAny<TextReviewRequest>()), 
+                x => x.GetTextReview(It.IsAny<TextReviewRequest>(), default), 
                 Times.Never);
         }
 
@@ -132,7 +132,7 @@ namespace Oh.Evaluation.Tests
                 .Setup(x => x.GetTextReview(It.Is<TextReviewRequest>(r => 
                     r.Answer == studentAnswer && 
                     r.Question == question.Text &&
-                    r.Rubric == correctAnswer)))
+                    r.Rubric == correctAnswer), It.IsAny<CancellationToken>()))
                 .ReturnsAsync(new TextReviewResponse
                 {
                     Score = aiScore,
@@ -152,7 +152,7 @@ namespace Oh.Evaluation.Tests
             
             // Verify AI client was called exactly once
             _aiClientMock.Verify(
-                x => x.GetTextReview(It.IsAny<TextReviewRequest>()), 
+                x => x.GetTextReview(It.IsAny<TextReviewRequest>(), It.IsAny<CancellationToken>()), 
                 Times.Once);
         }
 
@@ -186,7 +186,7 @@ namespace Oh.Evaluation.Tests
             
             // Verify AI client was NOT called
             _aiClientMock.Verify(
-                x => x.GetTextReview(It.IsAny<TextReviewRequest>()), 
+                x => x.GetTextReview(It.IsAny<TextReviewRequest>(), It.IsAny<CancellationToken>()), 
                 Times.Never);
         }
 
@@ -220,7 +220,7 @@ namespace Oh.Evaluation.Tests
             
             // Verify AI client was NOT called
             _aiClientMock.Verify(
-                x => x.GetTextReview(It.IsAny<TextReviewRequest>()), 
+                x => x.GetTextReview(It.IsAny<TextReviewRequest>(), It.IsAny<CancellationToken>()), 
                 Times.Never);
         }
 
@@ -254,7 +254,7 @@ namespace Oh.Evaluation.Tests
             
             // Verify AI client was NOT called
             _aiClientMock.Verify(
-                x => x.GetTextReview(It.IsAny<TextReviewRequest>()), 
+                x => x.GetTextReview(It.IsAny<TextReviewRequest>(), It.IsAny<CancellationToken>()), 
                 Times.Never);
         }
 
@@ -285,7 +285,7 @@ namespace Oh.Evaluation.Tests
             };
 
             _aiClientMock
-                .Setup(x => x.GetTextReview(It.IsAny<TextReviewRequest>()))
+                .Setup(x => x.GetTextReview(It.IsAny<TextReviewRequest>(), It.IsAny<CancellationToken>()))
                 .ThrowsAsync(new HttpRequestException("AI service unavailable"));
 
             // Act & Assert
