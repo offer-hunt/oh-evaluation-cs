@@ -43,5 +43,3 @@ env:
     ApiSettings__LearningClientBase="http://host:port"
     ApiSettings__PageClientBase="http://host:port/api/pages"
 }
-
-ASPNETCORE_ENVIRONMENT = "prod" выключит сваггер
